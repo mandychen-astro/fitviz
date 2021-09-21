@@ -1,0 +1,23 @@
+# where to find data
+map_path /Users/mandychen/CUBS/J0454-6116/eso/mcmc_results/
+cube_path /Users/mandychen/CUBS/J0454-6116/eso/
+map_fname vdiff_OIII-OII.fits
+cube_fname qsub_HRSDI_eso_nc_cont_sub_center_replaced_smoothed_sig1.5.fits
+
+# display specifics of data
+# for 2d image and full spec
+vmin vmax -130 20
+color_bar_label 'Velocity [OIII]-[OII] (km/s)'
+xmin xmax 140 190
+ymin ymax 160 200
+wmin0 wmax0 5000 9200
+rescale_noise 1.6
+
+# for zoom-in spec and model fits
+npanels 2
+wmins 6620 8825
+wmaxs 6700 8980
+panel_titles '[OII]' '[OIII]'
+
+model_path /Users/mandychen/CUBS/J0454-6116/eso/mcmc_results/OIIonly/ /Users/mandychen/CUBS/J0454-6116/eso/mcmc_results/OIIIonly/
+model_fname OIIonly_bestfit_1comp.fits OIIIonly_bestfit_1comp.fits
