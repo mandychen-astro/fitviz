@@ -27,8 +27,8 @@ def return_bad_region_masks():
     # return []
 
 def return_chi2_window():
-    # return 
-    return fits.getdata('/Users/mandychen/PKS0454-22/eso/mcmc_results/OIIIonly/dynamic_chi2_window.fits')
+    return 
+    # return fits.getdata('/Users/mandychen/PKS0454-22/eso/mcmc_results/OIIIonly/dynamic_chi2_window.fits')
 
 
 

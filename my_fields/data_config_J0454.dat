@@ -1,12 +1,12 @@
 # where to find data
 map_path /Users/mandychen/CUBS/J0454-6116/eso/mcmc_results/
 cube_path /Users/mandychen/CUBS/J0454-6116/eso/
-map_fname vdiff_OIII-OII.fits
+map_fname vdiff_OIII-OII_filtered.fits
 cube_fname qsub_HRSDI_eso_nc_cont_sub_center_replaced_smoothed_sig1.5.fits
 
 # display specifics of data
 # for 2d image and full spec
-vmin vmax -130 20
+vmin vmax -60 30
 color_bar_label 'Velocity [OIII]-[OII] (km/s)'
 xmin xmax 140 190
 ymin ymax 160 200

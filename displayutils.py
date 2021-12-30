@@ -7,9 +7,7 @@ from matplotlib.backends.backend_tkagg import (
 from astropy.visualization import ZScaleInterval
 from astropy.io import fits
 import numpy as np 
-
-from fitviz.model_config import return_models
-
+from fitviz.model_config import return_models, return_bad_region_masks, return_chi2_window
 
 rc('font',**{'family':'serif','serif':['Computer Modern Roman']})
 rc('text', usetex=True)
@@ -41,19 +39,24 @@ class Cursor:
         self.canvas.draw()
 
 class Displays():
-    def __init__(self, config_params, data, model_popts):
+    def __init__(self, config_params, data, model_popts, chi2_maps, bic_maps):
         self.config_params = config_params
         self.data = data
         self.datacube = data.datacube
         self.errcube = np.sqrt(data.varcube)*config_params.rescale_noise
         self.wave = data.wave
         self.models = return_models()
+        self.bad_region_masks = return_bad_region_masks()
+        self.chi2_window = return_chi2_window()
         self.model_popts = model_popts
+        self.chi2_maps = chi2_maps
+        self.bic_maps = bic_maps
         self.linestyles = ['solid', 'dashed', 'dashed', 'dashed', 'dashed', 'dashed']
         self.colors = ['tab:red', 'tab:green', 'tab:orange', 'tab:blue', 'tab:purple', 'tab:brown']
 
     def set_full_window(self):
         self.root = Tk()
+        self.root.title('fitviz')
 
         self.frame1 = Frame(self.root)
         # self.frame2 = LabelFrame(self.root, text='Test', font=('calibre',12,'normal'),
@@ -72,14 +75,14 @@ class Displays():
         self.frame1.columnconfigure(3, weight=1)
 
 
-        ###### FOR TESTING, DELETE LATER #########  
         self.frame2.rowconfigure(0, weight=1)
         self.frame2.rowconfigure(1, weight=1)
+        self.frame2.rowconfigure(2, weight=1)
+        self.frame2.rowconfigure(3, weight=1)
         self.frame2.columnconfigure(0, weight=1)
         self.frame2.columnconfigure(1, weight=1)
         self.frame2.columnconfigure(2, weight=1)
         self.frame2.columnconfigure(3, weight=1)
-        ###### FOR TESTING, DELETE LATER #########  
 
 
         # display the full 2d image
@@ -115,7 +118,7 @@ class Displays():
         self.ax1.set_title('x={}, y={}'.format(xnew, ynew), fontsize=12)
 
         self.ax2.clear()
-        mask = (self.wave>self.wmin0) & (self.wave<self.wmax0)
+        mask = (self.wave>self.wmin) & (self.wave<self.wmax)
         self.ax2.step(self.wave[mask], self.datacube[:, ynew, xnew][mask], 
                             where='mid',color='k', linewidth=0.5)
         self.ax2.hlines(0, self.wave[mask][0], self.wave[mask][-1], linestyle='dashed', color='gray')
@@ -143,7 +146,38 @@ class Displays():
             except: self.axes[ipanel].plot(self.xmodels[ipanel], model, 
                                            linestyle=self.linestyles[0], 
                                            c=self.colors[0])
+
+            if len(self.bad_region_masks) > 0:
+                bad_regions = self.bad_region_masks[ipanel]
+                for ibad in range(int(len(bad_regions)/2)):
+                    self.axes[ipanel].axvspan(bad_regions[ibad*2], bad_regions[ibad*2+1], alpha=0.3, color='gray')
+
+            if self.chi2_window is not None:
+                try:
+                    nwindow = int(self.chi2_window.shape[0]/2)
+                    for iwindow in range(nwindow):
+                        self.axes[ipanel].axvspan(self.chi2_window[iwindow*2, ynew, xnew], 
+                            self.chi2_window[iwindow*2+1, ynew, xnew], alpha=0.2, color='tab:green')
+                except:
+                    chi2_window_ipanel = self.chi2_window[ipanel]
+                    for iwindow in range(int(chi2_window_ipanel.shape[0]/2)):
+                        self.axes[ipanel].axvspan(chi2_window_ipanel[iwindow*2, ynew, xnew], 
+                            chi2_window_ipanel[iwindow*2+1, ynew, xnew], alpha=0.2, color='tab:green')
+
+            if self.chi2_maps is not None:
+                self.axes[ipanel].text(0.1, 0.9, 
+                    r'$\chi^2_\nu=${:.2f}'.format(self.chi2_maps[ipanel][ynew, xnew]), 
+                    transform=self.axes[ipanel].transAxes)  
+
+            # if self.bic_maps is not None:
+            #     self.axes[ipanel].text(0.1, 0.8, 
+            #         r'BIC={}'.format(self.bic_maps[ipanel][ynew, xnew]), 
+            #         transform=self.axes[ipanel].transAxes)   
+            
+            self.axes[ipanel].set_xlim(self.wmins[ipanel], self.wmaxs[ipanel])
             self.axes[ipanel].set_ylabel(r'$F_\lambda$', fontsize=12)
+            self.axes[ipanel].set_title(self.config_params.panel_titles[ipanel], fontsize=13)
+
         self.axes[-1].set_xlabel(r'Observed wavelength ($\mathrm{\AA}$)', fontsize=12)
         self.canvas3.draw()
         self.canvas3.get_tk_widget().pack(fill = BOTH, expand = True, padx = 10, pady=2)
@@ -205,10 +239,10 @@ class Displays():
 
     def show_full_spec(self):
         init_spec = self.datacube[:, self.y0, self.x0]
-        self.wmin0, self.wmax0 = self.config_params.wmin0, self.config_params.wmax0
+        self.wmin, self.wmax = self.config_params.wmin, self.config_params.wmax
         self.fig2 = plt.figure(figsize=(6,2))
         self.ax2 = self.fig2.add_subplot(111)
-        mask = (self.wave>self.wmin0) & (self.wave<self.wmax0)
+        mask = (self.wave>self.wmin) & (self.wave<self.wmax)
         self.ax2.step(self.wave[mask], init_spec[mask], where='mid',color='k', linewidth=0.5)
         self.ax2.set_xlabel(r'Observed wavelength ($\mathrm{\AA}$)', fontsize=12)
         self.ax2.set_ylabel(r'$F_\lambda$', fontsize=12)
@@ -231,6 +265,8 @@ class Displays():
             self.axes[ipanel].step(self.wave[mask], spec_pix[mask], where='mid', color='k')
             self.axes[ipanel].step(self.wave[mask], specerr_pix[mask], where='mid', color='b')
             self.axes[ipanel].set_ylabel(r'$F_\lambda$', fontsize=12)
+            self.axes[ipanel].set_title(self.config_params.panel_titles[ipanel], fontsize=13)
+            self.axes[ipanel].set_xlim(self.wmins[ipanel], self.wmaxs[ipanel])
             nice_axis(self.axes[ipanel])
         self.axes[-1].set_xlabel(r'Observed wavelength ($\mathrm{\AA}$)', fontsize=12)
         self.fig3.tight_layout()
@@ -257,6 +293,34 @@ class Displays():
             except: self.axes[ipanel].plot(self.xmodels[ipanel], model, 
                                            linestyle=self.linestyles[0], 
                                            c=self.colors[0])
+
+            if len(self.bad_region_masks) > 0:
+                bad_regions = self.bad_region_masks[ipanel]
+                for ibad in range(int(len(bad_regions)/2)):
+                    self.axes[ipanel].axvspan(bad_regions[ibad*2], bad_regions[ibad*2+1], alpha=0.3, color='gray')
+
+            if self.chi2_window is not None:
+                try:
+                    nwindow = int(self.chi2_window.shape[0]/2)
+                    for iwindow in range(nwindow):
+                        self.axes[ipanel].axvspan(self.chi2_window[iwindow*2, self.y0, self.x0], 
+                            self.chi2_window[iwindow*2+1, self.y0, self.x0], alpha=0.2, color='tab:green')
+                except:
+                    chi2_window_ipanel = self.chi2_window[ipanel]
+                    for iwindow in range(int(chi2_window_ipanel.shape[0]/2)):
+                        self.axes[ipanel].axvspan(chi2_window_ipanel[iwindow*2, self.y0, self.x0], 
+                            chi2_window_ipanel[iwindow*2+1, self.y0, self.x0], alpha=0.2, color='tab:green')
+
+            if self.chi2_maps is not None:
+                self.axes[ipanel].text(0.1, 0.9, 
+                    r'$\chi^2_\nu=${:.2f}'.format(self.chi2_maps[ipanel][self.y0, self.x0]), 
+                    transform=self.axes[ipanel].transAxes)  
+
+            # if self.bic_maps is not None:
+            #     self.axes[ipanel].text(0.1, 0.8, 
+            #         r'BIC={}'.format(self.bic_maps[ipanel][self.y0, self.x0]), 
+            #         transform=self.axes[ipanel].transAxes)        
+
 
     def run(self):
         self.root.mainloop()
