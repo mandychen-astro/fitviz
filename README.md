@@ -2,6 +2,8 @@
 
 ## Description
 
+`fitviz` is a python package for interactive visualization of spectral model fitting results for 3D IFU datacubes. 
+
 ### Motivation
 
 Extracting information from wide-field, integral-field-unit data (IFU) (such as data taken by [VLT/MUSE](https://www.eso.org/sci/facilities/develop/instruments/muse.html
