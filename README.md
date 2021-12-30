@@ -4,6 +4,8 @@
 
 `fitviz` is a python package for interactive visualization of spectral model fitting results for 3D IFU datacubes. 
 
+![alt text](./example/fitviz_screenshot.png)
+
 ### Motivation
 
 Extracting information from wide-field, integral-field-unit data (IFU) (such as data taken by [VLT/MUSE](https://www.eso.org/sci/facilities/develop/instruments/muse.html
@@ -38,6 +40,4 @@ Then use `python /path_to_fitviz_dir/main.py data_config.dat model_config.py`.  
 
 ## Example
 
-Here is an example, using the VLT/MUSE data for the QSO field PKS0454-22.  You'll see how to write up the `data_config.dat` and `model_config.py` files here.  Datacube is publically available on the [VLT data archive](http://archive.eso.org/wdb/wdb/adp/phase3_spectral/form) with PID: 0100.A-0753. The example datacube here is further processed by me to have the QSO light subtracted, and is not included in this repo due to its large size (~5Gb).  But it should be easy for you to replace the paths in the `data_config.dat` to use your own datacube and image. Finally, to start, simply type `python main.py data_config.dat model_config.py`.  You should see a window like this:
-
-![alt text](./example/fitviz_screenshot.png)
+Here is an example, using the VLT/MUSE data for the QSO field PKS0454-22.  You'll see how to write up the `data_config.dat` and `model_config.py` files here.  Datacube is publically available on the [VLT data archive](http://archive.eso.org/wdb/wdb/adp/phase3_spectral/form) with PID: 0100.A-0753. The example datacube here is further processed by me to have the QSO light subtracted, and is not included in this repo due to its large size (~5Gb).  But it should be easy for you to replace the paths in the `data_config.dat` to use your own datacube and image. Finally, to start, simply type `python main.py data_config.dat model_config.py`.  You should see a window like the one in the screenshot above.
